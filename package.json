@@ -1,0 +1,36 @@
+{
+  "name": "rodeoclip",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "webhook": "node scripts/stripe-webhook-server.js",
+    "stripe:login": "C:\\\\Tools\\\\Stripe-Cli\\\\stripe.exe login",
+    "stripe:listen": "C:\\\\Tools\\\\Stripe-Cli\\\\stripe.exe listen --events checkout.session.completed,payment_intent.succeeded --forward-to http://localhost:4242/api/stripe-webhook"
+  },
+  "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "@supabase/supabase-js": "^2.88.0",
+    "dotenv": "^16.6.1",
+    "file-saver": "^2.0.5",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "stripe": "^16.12.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.2.4",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

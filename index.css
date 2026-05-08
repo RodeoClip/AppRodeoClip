@@ -1,0 +1,188 @@
+/* ── Google Fonts ───────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Rye&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+/* ── Tailwind theme tokens ──────────────────────────────── */
+@theme {
+  --color-rodeo-900: #1a1818;
+  --color-rodeo-800: #2d2a2a;
+  --color-rodeo-700: #3a3636;
+  --color-rodeo-500: #d97706;
+  --color-rodeo-400: #f59e0b;
+  --color-rodeo-300: #fbbf24;
+
+  --font-brand: 'Rye', serif;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* ── Base ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  background-color: #1a1818;
+  color: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root { display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #2d2a2a; }
+::-webkit-scrollbar-thumb { background: #4a4545; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #d97706; }
+
+/* ── Selection ──────────────────────────────────────────── */
+::selection { background: #d97706; color: #000; }
+
+/* ── Range slider ───────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: #3a3636;
+  cursor: pointer;
+  accent-color: #d97706;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,.25);
+  cursor: pointer;
+  transition: box-shadow .15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(217,119,6,.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #d97706;
+  border: none;
+  cursor: pointer;
+}
+
+/* ── Logo drag cursor ───────────────────────────────────── */
+.logo-editing { cursor: move !important; }
+
+/* ── Video preview 9:16 frame ───────────────────────────── */
+.preview-frame {
+  position: relative;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px dashed #3b5bff;
+  box-shadow: 0 0 32px rgba(59,91,255,.18), inset 0 0 40px rgba(0,0,0,.5);
+  aspect-ratio: 9 / 16;
+  /* Responsivo: ocupa até a altura disponível sem ultrapassar */
+  max-height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+
+/* ── Fade-in ────────────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fadeIn .25s ease both; }
+
+/* ── Spin ───────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .75s linear infinite; }
+
+/* ── Upload drag-over highlight ─────────────────────────── */
+.upload-drag-over {
+  border-color: #d97706 !important;
+  background: rgba(217,119,6,.08) !important;
+}
+
+/* ── Thumbnail strip (lista de vídeos) ──────────────────── */
+.thumb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background .15s, border-color .15s;
+  background: #1f2937;
+}
+.thumb-item:hover { background: #374151; }
+.thumb-item.active {
+  background: rgba(217,119,6,.12);
+  border-color: rgba(217,119,6,.45);
+}
+.thumb-item video,
+.thumb-item canvas {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 5px;
+  flex-shrink: 0;
+  background: #000;
+}
+.thumb-item .thumb-no-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  background: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+/* ── Logo editing ring ──────────────────────────────────── */
+.logo-handle {
+  position: absolute;
+  z-index: 15;
+  touch-action: none;
+  user-select: none;
+}
+.logo-handle.editable {
+  cursor: move;
+  outline: 2px dashed #d97706;
+  outline-offset: 2px;
+}
+.logo-handle.locked { pointer-events: none; }
+
+/* ── Logo resize corner handles ─────────────────────────── */
+.logo-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #d97706;
+  border: 2px solid #fff;
+  border-radius: 3px;
+  cursor: nwse-resize;
+  touch-action: none;
+  z-index: 16;
+}
+.logo-resize-handle[data-corner="tl"] { cursor: nwse-resize; }
+.logo-resize-handle[data-corner="tr"] { cursor: nesw-resize; }
+.logo-resize-handle[data-corner="bl"] { cursor: nesw-resize; }
+.logo-resize-handle[data-corner="br"] { cursor: nwse-resize; }
+
+/* ── Modal top bar gradient ─────────────────────────────── */
+.modal-topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #d97706, #fbbf24, #d97706);
+}
+
+/* ── Progress bar ───────────────────────────────────────── */
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+  border-radius: 999px;
+  transition: width .35s ease;
+}
