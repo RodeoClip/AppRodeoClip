@@ -2,6 +2,10 @@ import { ConversionSettings } from '../types';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { createTemporaryBlob } from './blobManager';
+import coreStJs   from '/ffmpeg-st/ffmpeg-core.js?url';
+import coreStWasm from '/ffmpeg-st/ffmpeg-core.wasm?url';
+import coreMtJs   from '/ffmpeg/ffmpeg-core.js?url';
+import coreMtWasm from '/ffmpeg/ffmpeg-core.wasm?url';
 
 let ffmpeg: FFmpeg | null = null;
 let ffmpegLoadPromise: Promise<FFmpeg> | null = null;
@@ -40,42 +44,27 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
     const hasSAB = typeof SharedArrayBuffer !== 'undefined';
     console.log('[ffmpeg] SharedArrayBuffer available:', hasSAB);
 
-    // single-thread (no SharedArrayBuffer needed) — always try first
-    const stBases = [
-      `${location.origin}/ffmpeg-st`,
-      'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist',
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist'
-    ];
-
-    for (const base of stBases) {
-      try {
-        console.log('[ffmpeg] trying single-thread base:', base);
-        const result = await tryLoad(`${base}/ffmpeg-core.js`, `${base}/ffmpeg-core.wasm`);
-        console.log('[ffmpeg] loaded single-thread from:', base);
-        return result;
-      } catch (e) {
-        console.warn('[ffmpeg] failed single-thread base:', base, e);
-        lastErr = e;
-      }
+    // single-thread — usa arquivos locais via import estático do Vite
+    try {
+      console.log('[ffmpeg] trying single-thread local');
+      const result = await tryLoad(coreStJs, coreStWasm);
+      console.log('[ffmpeg] loaded single-thread local');
+      return result;
+    } catch (e) {
+      console.warn('[ffmpeg] failed single-thread local:', e);
+      lastErr = e;
     }
 
-    // multi-thread fallback (requires SharedArrayBuffer)
+    // multi-thread — usa arquivos locais via import estático do Vite
     if (hasSAB) {
-      const mtBases = [
-        `${location.origin}/ffmpeg`,
-        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
-        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
-      ];
-      for (const base of mtBases) {
-        try {
-          console.log('[ffmpeg] trying multi-thread base:', base);
-          const result = await tryLoad(`${base}/ffmpeg-core.js`, `${base}/ffmpeg-core.wasm`);
-          console.log('[ffmpeg] loaded multi-thread from:', base);
-          return result;
-        } catch (e) {
-          console.warn('[ffmpeg] failed multi-thread base:', base, e);
-          lastErr = e;
-        }
+      try {
+        console.log('[ffmpeg] trying multi-thread local');
+        const result = await tryLoad(coreMtJs, coreMtWasm);
+        console.log('[ffmpeg] loaded multi-thread local');
+        return result;
+      } catch (e) {
+        console.warn('[ffmpeg] failed multi-thread local:', e);
+        lastErr = e;
       }
     }
 
