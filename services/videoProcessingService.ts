@@ -37,26 +37,48 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
 
   ffmpegLoadPromise = (async () => {
     let lastErr: any;
+    const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+    console.log('[ffmpeg] SharedArrayBuffer available:', hasSAB);
 
-    const bases = [
-      `${location.origin}/ffmpeg`,
-      'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
-      'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
+    // single-thread (no SharedArrayBuffer needed) — always try first
+    const stBases = [
+      `${location.origin}/ffmpeg-st`,
+      'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist',
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist'
     ];
 
-    for (const base of bases) {
+    for (const base of stBases) {
       try {
-        console.log('[ffmpeg] trying base:', base);
-        const coreJs = `${base}/ffmpeg-core.js`;
-        const coreWasm = `${base}/ffmpeg-core.wasm`;
-        const result = await tryLoad(coreJs, coreWasm);
-        console.log('[ffmpeg] loaded from:', base);
+        console.log('[ffmpeg] trying single-thread base:', base);
+        const result = await tryLoad(`${base}/ffmpeg-core.js`, `${base}/ffmpeg-core.wasm`);
+        console.log('[ffmpeg] loaded single-thread from:', base);
         return result;
       } catch (e) {
-        console.warn('[ffmpeg] failed base:', base, e);
+        console.warn('[ffmpeg] failed single-thread base:', base, e);
         lastErr = e;
       }
     }
+
+    // multi-thread fallback (requires SharedArrayBuffer)
+    if (hasSAB) {
+      const mtBases = [
+        `${location.origin}/ffmpeg`,
+        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
+      ];
+      for (const base of mtBases) {
+        try {
+          console.log('[ffmpeg] trying multi-thread base:', base);
+          const result = await tryLoad(`${base}/ffmpeg-core.js`, `${base}/ffmpeg-core.wasm`);
+          console.log('[ffmpeg] loaded multi-thread from:', base);
+          return result;
+        } catch (e) {
+          console.warn('[ffmpeg] failed multi-thread base:', base, e);
+          lastErr = e;
+        }
+      }
+    }
+
     console.error('[ffmpeg] all bases failed:', lastErr);
     throw lastErr;
   })();

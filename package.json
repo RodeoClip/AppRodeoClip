@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/core-st": "^0.11.1",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "dotenv": "^16.6.1",
