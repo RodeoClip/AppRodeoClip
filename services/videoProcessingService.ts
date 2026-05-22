@@ -31,9 +31,8 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
 
   const instance = new FFmpeg();
   const tryLoad = async (coreJsUrl: string, coreWasmUrl: string) => {
-    const coreURL = await withTimeout(toBlobURL(coreJsUrl, 'text/javascript'), 30000);
     const wasmURL = await withTimeout(toBlobURL(coreWasmUrl, 'application/wasm'), 30000);
-    await withTimeout(instance.load({ coreURL, wasmURL }), 60000);
+    await withTimeout(instance.load({ coreURL: coreJsUrl, wasmURL }), 60000);
     try { instance.on('log', ({ message }) => console.debug('[ffmpeg]', message)); } catch {}
     try { instance.on('progress', (e: any) => { if (onProgress && typeof e?.progress === 'number') onProgress(Math.round(e.progress * 100)); }); } catch {}
     return instance;
