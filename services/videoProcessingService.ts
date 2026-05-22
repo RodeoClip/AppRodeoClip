@@ -39,6 +39,7 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
     let lastErr: any;
 
     const bases = [
+      `${location.origin}/ffmpeg`,
       'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
       'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
     ];
