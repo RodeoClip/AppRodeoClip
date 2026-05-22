@@ -28,10 +28,18 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
   if (ffmpegLoadPromise) return ffmpegLoadPromise;
 
   const instance = new FFmpeg();
+
+  const makeBlobURL = async (url: string, mimeType: string): Promise<string> => {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`fetch ${url} -> ${resp.status}`);
+    const buf = await resp.arrayBuffer();
+    return URL.createObjectURL(new Blob([buf], { type: mimeType }));
+  };
+
   const tryLoadMT = async (base: string) => {
-    const coreURL   = await withTimeout(toBlobURL(`${base}/ffmpeg-core.js`,     'text/javascript'), 30000);
-    const wasmURL   = await withTimeout(toBlobURL(`${base}/ffmpeg-core.wasm`,   'application/wasm'), 30000);
-    const workerURL = await withTimeout(toBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript'), 30000);
+    const coreURL   = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.js`,        'text/javascript'), 30000);
+    const wasmURL   = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.wasm`,      'application/wasm'), 30000);
+    const workerURL = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript'), 30000);
     await withTimeout(instance.load({ coreURL, wasmURL, workerURL }), 60000);
     try { instance.on('log', ({ message }) => console.debug('[ffmpeg]', message)); } catch {}
     try { instance.on('progress', (e: any) => { if (onProgress && typeof e?.progress === 'number') onProgress(Math.round(e.progress * 100)); }); } catch {}
