@@ -4,10 +4,6 @@ import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { createTemporaryBlob } from './blobManager';
 
 const BASE = location.origin;
-const coreStJs   = `${BASE}/ffmpeg-st/ffmpeg-core.js`;
-const coreStWasm = `${BASE}/ffmpeg-st/ffmpeg-core.wasm`;
-const coreMtJs   = `${BASE}/ffmpeg/ffmpeg-core.js`;
-const coreMtWasm = `${BASE}/ffmpeg/ffmpeg-core.wasm`;
 
 let ffmpeg: FFmpeg | null = null;
 let ffmpegLoadPromise: Promise<FFmpeg> | null = null;
@@ -32,10 +28,11 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
   if (ffmpegLoadPromise) return ffmpegLoadPromise;
 
   const instance = new FFmpeg();
-  const tryLoad = async (coreJsUrl: string, coreWasmUrl: string) => {
-    const coreURL = await withTimeout(toBlobURL(coreJsUrl, 'text/javascript'), 30000);
-    const wasmURL = await withTimeout(toBlobURL(coreWasmUrl, 'application/wasm'), 30000);
-    await withTimeout(instance.load({ coreURL, wasmURL }), 60000);
+  const tryLoadMT = async (base: string) => {
+    const coreURL   = await withTimeout(toBlobURL(`${base}/ffmpeg-core.js`,     'text/javascript'), 30000);
+    const wasmURL   = await withTimeout(toBlobURL(`${base}/ffmpeg-core.wasm`,   'application/wasm'), 30000);
+    const workerURL = await withTimeout(toBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript'), 30000);
+    await withTimeout(instance.load({ coreURL, wasmURL, workerURL }), 60000);
     try { instance.on('log', ({ message }) => console.debug('[ffmpeg]', message)); } catch {}
     try { instance.on('progress', (e: any) => { if (onProgress && typeof e?.progress === 'number') onProgress(Math.round(e.progress * 100)); }); } catch {}
     return instance;
@@ -46,26 +43,21 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
     const hasSAB = typeof SharedArrayBuffer !== 'undefined';
     console.log('[ffmpeg] SharedArrayBuffer available:', hasSAB);
 
-    // single-thread — usa arquivos locais via import estático do Vite
-    try {
-      console.log('[ffmpeg] trying single-thread local');
-      const result = await tryLoad(coreStJs, coreStWasm);
-      console.log('[ffmpeg] loaded single-thread local');
-      return result;
-    } catch (e) {
-      console.warn('[ffmpeg] failed single-thread local:', e);
-      lastErr = e;
-    }
+    const bases = [
+      `${BASE}/ffmpeg-mt`,
+      `${BASE}/ffmpeg`,
+      'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/umd',
+      'https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist/umd',
+    ];
 
-    // multi-thread — usa arquivos locais via import estático do Vite
-    if (hasSAB) {
+    for (const base of bases) {
       try {
-        console.log('[ffmpeg] trying multi-thread local');
-        const result = await tryLoad(coreMtJs, coreMtWasm);
-        console.log('[ffmpeg] loaded multi-thread local');
+        console.log('[ffmpeg] trying:', base);
+        const result = await tryLoadMT(base);
+        console.log('[ffmpeg] loaded from:', base);
         return result;
       } catch (e) {
-        console.warn('[ffmpeg] failed multi-thread local:', e);
+        console.warn('[ffmpeg] failed:', base, e);
         lastErr = e;
       }
     }
