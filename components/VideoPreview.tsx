@@ -70,6 +70,7 @@ export const VideoPreview: React.FC = () => {
         setCompatTick(t => t + 1);
       } catch (e) {
         if (!alive) return;
+        console.error('[VideoPreview] preview error:', e);
         setError((e as any)?.message === 'compat_timeout'
           ? 'Preview demorou demais para gerar'
           : 'Falha ao gerar preview vertical');
