@@ -46,13 +46,18 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
 
     for (const base of bases) {
       try {
+        console.log('[ffmpeg] trying base:', base);
         const coreJs = `${base}/ffmpeg-core.js`;
         const coreWasm = `${base}/ffmpeg-core.wasm`;
-        return await tryLoad(coreJs, coreWasm);
+        const result = await tryLoad(coreJs, coreWasm);
+        console.log('[ffmpeg] loaded from:', base);
+        return result;
       } catch (e) {
+        console.warn('[ffmpeg] failed base:', base, e);
         lastErr = e;
       }
     }
+    console.error('[ffmpeg] all bases failed:', lastErr);
     throw lastErr;
   })();
 
