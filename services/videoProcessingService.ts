@@ -29,18 +29,11 @@ const loadFFmpeg = async (onProgress?: (p: number) => void) => {
 
   const instance = new FFmpeg();
 
-  const makeBlobURL = async (url: string, mimeType: string): Promise<string> => {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`fetch ${url} -> ${resp.status}`);
-    const buf = await resp.arrayBuffer();
-    return URL.createObjectURL(new Blob([buf], { type: mimeType }));
-  };
-
   const tryLoadMT = async (base: string) => {
-    const coreURL   = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.js`,        'text/javascript'), 30000);
-    const wasmURL   = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.wasm`,      'application/wasm'), 30000);
-    const workerURL = await withTimeout(makeBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript'), 30000);
-    await withTimeout(instance.load({ coreURL, wasmURL, workerURL }), 60000);
+    // Passar URLs diretas — o worker clássico usa importScripts() com a URL direta
+    const coreURL = `${base}/ffmpeg-core.js`;
+    const wasmURL = `${base}/ffmpeg-core.wasm`;
+    await withTimeout(instance.load({ coreURL, wasmURL }), 60000);
     try { instance.on('log', ({ message }) => console.debug('[ffmpeg]', message)); } catch {}
     try { instance.on('progress', (e: any) => { if (onProgress && typeof e?.progress === 'number') onProgress(Math.round(e.progress * 100)); }); } catch {}
     return instance;
